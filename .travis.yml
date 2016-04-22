@@ -1,0 +1,26 @@
+language: python
+python: '2.7'
+sudo: required
+dist: trusty
+env:
+  global:
+  - secure: "GNPbrTcr3s1r74FyRcQak0ZF74eDW+7Yg25yywgK7+AywF9USF8734EQUxCMdEMV6G7q+6sXHmo7OezhDs7tJ/+AnpvWb29dGhsJyBZjblLdEZQe5Fz97N49hY9h+IQG9n/7bJUlv6bRdZU0PAA6vokx6Grhuw16CSgTm/CKbfyiXy46MkfoM8S25mf4Ovx+QCyDnN9ms6m1F9T1h/XUEb9to+SIQkCvE32gSmt860+7kXXmghye7P4lsVbcnz85c2Zd+1xqW1yWHdCEQf2G8kzgUAiPAYkx4eFd8/e3ZYvyX9cpS33QGYYdg1NrVQzOn3qPDqvSJmTRXSCtpq18CPf/npQoK4Ji8VMBUxvxDIZf+gkyVtSjkUE00zFFB/wnylofjK0nAPml9+n6hFA3+aiGA0W7pbEEUfaYaRIKr+5WhmjTtmK5fGXWbLW4VtfDjtvr7W/UDhdqVjOBUnCHA2gc44j+OIzaPo3nK9P9QWsv3y7N/buEQC8PYfR2NFEPFITiGrmS+uRD8s3/qAJloQ764bz+X1q7suOS1E4fk9qz+usJNK07+mSdWliMGuv8lSwMx4wv7vJVQl3bYEwzZVHeP3eHABv4ippY9bf+hHaT82/tGjHFhL/48o7GhdI7SAtfUgfHeCqzo/lgt/Z5FBtSU/1v6x8+AaMNF5n0lXI="
+  - secure: "BIDMtorM/Bn5KGd9ahsTgi/BwwqQJJI7Neh/ixpu7+02EZebZziDR8A5vf+jBqNj04npV+k+tbziF6k9mmnbp37HYRcWYprh1eEHv3n2S5gLDcrN8wt6ZrdscpRbuSJMX1bRS5LalpSjNgGLFn+Em+eE0U4rfRZDbEvY7uOebva83U+FBa17zcT0sop6vARVS/OQtS3zHtEtyQxM62I5hoX4KocGb/FhTsbqggx+ppe3T1s8me3EpflVHKXNbrve7sNu9E6vm0h4MlE0KyoAaTC3dE9K+SlSsRMtRTcunInCi24N6HI2Tvsl5dMEEzlD+NF33sKA8qQ5lGEiF5ZvxppFiXm2Byv7eFIvi7egG9r+mB501CTCHmqcgBFL47A5379X+KMMgVknhcJ5NO4ZtZXx7mcJy3MnhzJcKj0hGDjNxFM0PoCgxiSJN9ctaH5OMGrRL0pi/jbY795gfKaUWZRInM/Ccy2V3z5Y0sac4JniScJVobYGDls9C4XcqsXgVTMxfdO/K91RxZIEbn4NeEV9/h1m6eQmv2XBJI0trH8VQHOS/Vsq1otJJRzWva67huUq3BgWcezEkTQ3nB5tGIHOtfTCTicWOPkltauHGrjLySIjUJZzbfN2wOZMxxBwyFoIPKzykBFiJ8f9iB59qOfn+5v1koA7iYgH2GNw2h8="
+git:	
+  submodules: false
+before_install:
+- git submodule update --init --recursive
+- git submodule foreach git pull origin master
+- sudo apt-get update -qq
+- sudo apt-get install -qq squashfs-tools uuid python-apt python-pycurl mktorrent
+install:
+- sudo pip install ansible
+- sudo pip install docker-py
+script:
+- cd squashible
+- sudo ansible-playbook -i hosts_generator.py squashible_kvm.yml -e "live_os=ubuntu_16.04"
+- ls -lah live_output
+- sudo chown -R travis:travis live_output 
+- cd live_output
+after_success:
+    "curl --ftp-create-dirs -T '{vmlinuz,initrd.img,rootfs.img,rootfs.img.torrent}' -u $FTP_USER:$FTP_PASSWORD ftp://images.squashible.com/images/squashible-ubuntu-16.04-kvm/"
