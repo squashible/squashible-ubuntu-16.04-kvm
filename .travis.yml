@@ -17,10 +17,14 @@ install:
 - sudo pip install ansible
 - sudo pip install docker-py
 script:
+- df
+- mount
 - cd squashible
 - sudo ansible-playbook -i hosts_generator.py -vvvv squashible_kvm.yml -e "live_os=ubuntu_16.04"
 - ls -lah live_output
 - sudo chown -R travis:travis live_output 
 - cd live_output
+- df
+- mount
 after_success:
     "curl --ftp-create-dirs -T '{vmlinuz,initrd.img,rootfs.img,rootfs.img.torrent}' -u $FTP_USER:$FTP_PASSWORD ftp://images.squashible.com/images/squashible-ubuntu-16.04-kvm/"
